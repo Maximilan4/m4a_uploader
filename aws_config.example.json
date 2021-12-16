@@ -1,0 +1,7 @@
+{
+  "region": "ru-central1",
+  "host": "https://storage.yandexcloud.net",
+  "secretAccessKey":  "<access_key>",
+  "accessKeyId": "<key_id>",
+  "bucket":  "<bucket_name>"
+}
