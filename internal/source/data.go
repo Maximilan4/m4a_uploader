@@ -34,6 +34,10 @@ func (as *AppleSource) Search(amid int64) *AppleTrackInfo {
     return nil
 }
 
+func (as *AppleSource) DropToFile() {
+
+}
+
 func (as *AppleSource) LoadFromCsv(reader *csv.Reader) error {
     var (
         amid int64

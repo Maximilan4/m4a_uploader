@@ -1,13 +1,16 @@
 package main
 
 import (
+    "errors"
     "flag"
     "github.com/sirupsen/logrus"
     "m4a_manager/internal/apple"
     "m4a_manager/internal/input"
     "m4a_manager/internal/m4a"
     "m4a_manager/internal/source"
+    "m4a_manager/internal/state"
     "m4a_manager/internal/upload"
+    "os"
 )
 
 var sourceFile *string
@@ -42,10 +45,19 @@ func main() {
         logrus.Fatal(err)
     }
 
-    m4aPaths := input.ScanForM4aPaths(*scanDir)
+    uploadedDataset, err := initUploadedDataSource("uploaded.csv")
+    if err != nil {
+        logrus.Fatal(err)
+    }
+
+    m4aPaths := input.ScanForM4aPaths(*scanDir, uploadedDataset)
     audioFiles := m4a.ParseFiles(m4aPaths)
     matchedFiles := apple.MatchAudioFiles(audioFiles, dataset)
-    upload.M4a(matchedFiles, awsCfg.Bucket)
+    uploadedFiles := upload.M4a(matchedFiles, awsCfg.Bucket, uploadedDataset)
+    err = state.SaveUploaded(uploadedFiles, "uploaded.csv")
+    if err != nil {
+        logrus.Fatal(err)
+    }
 }
 
 func initDataSource(sourceFile string) (*source.AppleSource, error) {
@@ -55,6 +67,27 @@ func initDataSource(sourceFile string) (*source.AppleSource, error) {
     }
 
     dataSource := source.NewAppleSource()
+    err = dataSource.LoadFromCsv(reader)
+    if err != nil {
+        logrus.Fatal(err)
+    }
+
+    return dataSource, nil
+}
+
+func initUploadedDataSource(sourceFile string) (*source.UploadedM4aSource, error) {
+    dataSource := source.NewUploadedM4aSource()
+    if _, err := os.Stat(sourceFile); errors.Is(err, os.ErrNotExist) {
+        return dataSource, nil
+    } else if err != nil {
+        return nil, err
+    }
+
+    reader, err := input.OpenSourceFile(sourceFile)
+    if err != nil {
+        logrus.Fatal(err)
+    }
+
     err = dataSource.LoadFromCsv(reader)
     if err != nil {
         logrus.Fatal(err)

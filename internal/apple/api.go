@@ -28,7 +28,6 @@ func MatchAudioFiles(files chan *m4a.AudioFile, dataset *source.AppleSource) cha
     matched := make(chan *m4a.AudioFile)
     go func(searchedTracks chan *m4a.AudioFile) {
         defer close(searchedTracks)
-
         for file := range files {
             founded, err := match(file, dataset)
             if err != nil {

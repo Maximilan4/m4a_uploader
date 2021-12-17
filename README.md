@@ -12,5 +12,5 @@
 ```bash
 cat aws_config.example.json > aws_config.json # создать конфиг и заменить все значения на свои
 go build -o uploader cmd/m4a/main.go
-./uploader -d /path/to/m4a/files # при условии что source.csv и aws_config.json лежат в директории исполенения)
+./uploader -d /path/to/m4a/files # при условии что source.csv и aws_config.json лежат в директории исполнения)
 ```

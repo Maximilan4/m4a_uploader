@@ -11,6 +11,7 @@ import (
     "github.com/aws/aws-sdk-go-v2/service/s3"
     "github.com/sirupsen/logrus"
     "m4a_manager/internal/m4a"
+    "m4a_manager/internal/source"
     "os"
     "time"
 )
@@ -49,17 +50,33 @@ func getResolverFunc(cfg *Config) aws.EndpointResolverWithOptionsFunc {
     }
 }
 
-func M4a(files chan *m4a.AudioFile, bucketName string) {
+func M4a(files chan *m4a.AudioFile, bucketName string, uploaded *source.UploadedM4aSource) chan *m4a.AudioFile {
     var err error
-    for file := range files {
-        err = uploadM4aFile(file, bucketName)
-        if err != nil {
-            logrus.WithError(err).Warningf("Uploading file %s is failed", file.Path)
-            continue
-        }
+    var existing *m4a.AudioFile
+    output := make(chan *m4a.AudioFile)
 
-        logrus.Infof("upload is complete for file %s", file.Path)
-    }
+    go func() {
+        defer close(output)
+        for file := range files {
+            existing = uploaded.SearchByAmid(file.Amid)
+            if existing != nil {
+                logrus.Infof("file %s has already uploaded ", file.Path)
+                continue
+            }
+
+            err = uploadM4aFile(file, bucketName)
+            if err != nil {
+                logrus.WithError(err).Warningf("Uploading file %s is failed", file.Path)
+                continue
+            }
+
+            uploaded.Push(file)
+            output <- file
+            logrus.Infof("upload is complete for file %s", file.Path)
+        }
+    }()
+
+    return output
 }
 
 func uploadM4aFile(file *m4a.AudioFile, bucketName string) error {

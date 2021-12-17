@@ -3,20 +3,21 @@ package input
 import (
     "github.com/sirupsen/logrus"
     "io/ioutil"
+    "m4a_manager/internal/source"
     "path"
     "strings"
 )
 
-func ScanForM4aPaths(dir string) chan string {
+func ScanForM4aPaths(dir string, uploaded *source.UploadedM4aSource) chan string {
     outputChan := make(chan string)
     go func() {
         defer close(outputChan)
-        scan(dir, outputChan)
+        scan(dir, outputChan, uploaded)
     }()
     return outputChan
 }
 
-func scan(dir string, outputChan chan string) {
+func scan(dir string, outputChan chan string, uploaded *source.UploadedM4aSource) {
     elements, err := ioutil.ReadDir(dir)
     if err != nil {
         logrus.Error(err)
@@ -33,7 +34,7 @@ func scan(dir string, outputChan chan string) {
         }
 
         if f.IsDir() {
-            scan(filePath, outputChan)
+            scan(filePath, outputChan, uploaded)
             continue
         }
 
@@ -41,6 +42,11 @@ func scan(dir string, outputChan chan string) {
             continue
         }
 
-        outputChan <- filePath
+        existing := uploaded.SearchByPath(filePath)
+        if existing == nil {
+            outputChan <- filePath
+        } else {
+            logrus.Infof("file %s already uploaded", filePath)
+        }
     }
 }
