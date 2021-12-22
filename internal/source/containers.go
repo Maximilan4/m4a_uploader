@@ -7,7 +7,7 @@ type AppleTrackInfo struct {
     Isrc string
 }
 
-type AudioFilesByAmid []*m4a.AudioFile
+type AudioFilesByAmid []m4a.AudioFile
 
 func (a AudioFilesByAmid) Len() int {
     return len(a)
@@ -21,7 +21,7 @@ func (a AudioFilesByAmid) Swap(i, j int) {
     a[i], a[j] = a[j], a[i]
 }
 
-type AudioFilesByPath []*m4a.AudioFile
+type AudioFilesByPath []m4a.AudioFile
 
 func (a AudioFilesByPath) Len() int {
     return len(a)

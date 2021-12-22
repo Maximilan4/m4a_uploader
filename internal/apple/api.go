@@ -28,8 +28,10 @@ func MatchAudioFiles(files chan *m4a.AudioFile, dataset *source.AppleSource) cha
     matched := make(chan *m4a.AudioFile)
     go func(searchedTracks chan *m4a.AudioFile) {
         defer close(searchedTracks)
+        var err error
+        var founded *m4a.AudioFile
         for file := range files {
-            founded, err := match(file, dataset)
+            founded, err = match(file, dataset)
             if err != nil {
                 logrus.WithError(err).Warningf("Error while match track %s", file.SearchTitle)
                 continue
@@ -53,8 +55,11 @@ func match(file *m4a.AudioFile, dataset *source.AppleSource) (*m4a.AudioFile, er
     query.Add("types", "songs")
     query.Add("fields[songs]", "id,isrc")
     requestUrl.RawQuery = query.Encode()
+    var err error
+    var request *http.Request
+    var response *http.Response
 
-    request, err := http.NewRequest("get", requestUrl.String(), nil)
+    request, err = http.NewRequest("get", requestUrl.String(), nil)
     if err != nil {
         return nil, err
     }
@@ -62,7 +67,7 @@ func match(file *m4a.AudioFile, dataset *source.AppleSource) (*m4a.AudioFile, er
     request.Header.Add("Content-Type", "application/json")
     request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNjM5MDg1NjY1LCJleHAiOjE2NTQ2Mzc2NjV9.hjX-hCq2xVAgjOyiYvnlT6vbhBWl-RZETjVRZ6fGiVHaPW_yjsHv_jOJs57mrt-7uNa8kODd1Eo8dc179YkYoQ"))
 
-    response, err := http.DefaultClient.Do(request)
+    response, err = http.DefaultClient.Do(request)
     if err != nil {
         return nil, err
     }
@@ -81,6 +86,7 @@ func match(file *m4a.AudioFile, dataset *source.AppleSource) (*m4a.AudioFile, er
     }
 
     var id int64
+    var result *source.AppleTrackInfo
     for _, song := range parsedResult.Results.Songs.Data {
         id, err = strconv.ParseInt(song.Id, 10, 64)
         if err != nil {
@@ -88,7 +94,7 @@ func match(file *m4a.AudioFile, dataset *source.AppleSource) (*m4a.AudioFile, er
             continue
         }
 
-        result := dataset.Search(id)
+        result = dataset.Search(id)
         if result == nil {
             continue
         }

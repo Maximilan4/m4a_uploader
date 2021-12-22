@@ -26,7 +26,7 @@ func (as *UploadedM4aSource) SearchByAmid(amid int64) *m4a.AudioFile {
         mid = (start + end) / 2
         midValue = as.UploadedByAmids[mid].Amid
         if midValue == amid {
-            return as.UploadedByAmids[mid]
+            return &as.UploadedByAmids[mid]
         } else if midValue < amid {
             start = mid + 1
         } else if midValue > amid {
@@ -48,7 +48,7 @@ func (as *UploadedM4aSource) SearchByPath(path string) *m4a.AudioFile {
         mid = (start + end) / 2
         midValue = as.UploadedByPath[mid].Path
         if midValue == path {
-            return as.UploadedByAmids[mid]
+            return &as.UploadedByAmids[mid]
         } else if midValue < path {
             start = mid + 1
         } else if midValue > path {
@@ -59,7 +59,7 @@ func (as *UploadedM4aSource) SearchByPath(path string) *m4a.AudioFile {
     return nil
 }
 
-func (as *UploadedM4aSource) Push(file *m4a.AudioFile) {
+func (as *UploadedM4aSource) Push(file m4a.AudioFile) {
     as.UploadedByPath = append(as.UploadedByPath, file)
     as.UploadedByAmids = append(as.UploadedByAmids, file)
     sort.Sort(as.UploadedByAmids)
@@ -72,6 +72,7 @@ func (as *UploadedM4aSource) LoadFromCsv(reader *csv.Reader) error {
         err  error
         line []string
     )
+    var file m4a.AudioFile
     for {
         line, err = reader.Read()
         if err == io.EOF {
@@ -86,7 +87,7 @@ func (as *UploadedM4aSource) LoadFromCsv(reader *csv.Reader) error {
             continue
         }
 
-        file := &m4a.AudioFile{
+        file = m4a.AudioFile{
             Isrc: line[1],
             Path: line[2],
             Amid: amid,

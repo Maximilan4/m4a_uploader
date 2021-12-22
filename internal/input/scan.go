@@ -3,6 +3,7 @@ package input
 import (
     "github.com/sirupsen/logrus"
     "io/ioutil"
+    "m4a_manager/internal/m4a"
     "m4a_manager/internal/source"
     "path"
     "strings"
@@ -26,6 +27,7 @@ func scan(dir string, outputChan chan string, uploaded *source.UploadedM4aSource
 
     var name string
     var filePath string
+    var existing *m4a.AudioFile
     for _, f := range elements {
         name = f.Name()
         filePath = path.Join(dir, f.Name())
@@ -42,7 +44,7 @@ func scan(dir string, outputChan chan string, uploaded *source.UploadedM4aSource
             continue
         }
 
-        existing := uploaded.SearchByPath(filePath)
+        existing = uploaded.SearchByPath(filePath)
         if existing == nil {
             outputChan <- filePath
         } else {

@@ -1,6 +1,7 @@
 package main
 
 import (
+    "encoding/csv"
     "errors"
     "flag"
     "github.com/sirupsen/logrus"
@@ -61,11 +62,13 @@ func main() {
 }
 
 func initDataSource(sourceFile string) (*source.AppleSource, error) {
-    reader, err := input.OpenSourceFile(sourceFile)
+    file, err := os.Open(sourceFile)
+    defer file.Close()
     if err != nil {
-        logrus.Fatal(err)
+        return nil, err
     }
 
+    reader := csv.NewReader(file)
     dataSource := source.NewAppleSource()
     err = dataSource.LoadFromCsv(reader)
     if err != nil {
@@ -83,10 +86,12 @@ func initUploadedDataSource(sourceFile string) (*source.UploadedM4aSource, error
         return nil, err
     }
 
-    reader, err := input.OpenSourceFile(sourceFile)
+    file, err := os.Open(sourceFile)
+    defer file.Close()
     if err != nil {
-        logrus.Fatal(err)
+        return nil, err
     }
+    reader := csv.NewReader(file)
 
     err = dataSource.LoadFromCsv(reader)
     if err != nil {

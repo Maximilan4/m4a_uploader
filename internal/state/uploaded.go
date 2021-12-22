@@ -16,12 +16,15 @@ func SaveUploaded(files chan *m4a.AudioFile, outputFile string) error {
 
     defer output.Close()
     writer := csv.NewWriter(output)
+    defer writer.Flush()
+
     for file := range files {
         err = writer.Write([]string{strconv.FormatInt(file.Amid, 10), file.Isrc, file.Path})
         if err != nil {
             logrus.WithError(err).Error("cant write output to uploaded state file")
         }
-        writer.Flush()
+
+        file = nil
     }
 
     return nil

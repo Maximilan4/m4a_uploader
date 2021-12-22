@@ -18,8 +18,9 @@ func ParseFiles(pathChan chan string) chan *AudioFile {
 
     go func() {
         defer close(output)
+        var err error
         for path := range pathChan {
-            err := parseFile(path, output)
+            err = parseFile(path, output)
             if err != nil {
                 logrus.WithError(err).Errorf("unable to parse %s", path)
             }
@@ -30,17 +31,21 @@ func ParseFiles(pathChan chan string) chan *AudioFile {
 }
 
 func parseFile(path string, output chan *AudioFile) error {
-    meta, err := tag.ReadFile(path)
+    var err error
+    var artist, title string
+    var meta tag.Metadata
+
+    meta, err = tag.ReadFile(path)
     if err != nil {
         return err
     }
 
-    artist, err := meta.GetArtist()
+    artist, err = meta.GetArtist()
     if err != nil {
         return err
     }
 
-    title, err := meta.GetTitle()
+    title, err = meta.GetTitle()
     if err != nil {
         return err
     }

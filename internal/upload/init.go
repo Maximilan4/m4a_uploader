@@ -70,7 +70,7 @@ func M4a(files chan *m4a.AudioFile, bucketName string, uploaded *source.Uploaded
                 continue
             }
 
-            uploaded.Push(file)
+            uploaded.Push(*file)
             output <- file
             logrus.Infof("upload is complete for file %s", file.Path)
         }
