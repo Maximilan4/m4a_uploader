@@ -2,6 +2,7 @@ package input
 
 import (
     "github.com/sirupsen/logrus"
+    "io/fs"
     "io/ioutil"
     "m4a_manager/internal/m4a"
     "m4a_manager/internal/source"
@@ -28,14 +29,15 @@ func scan(dir string, outputChan chan string, uploaded *source.UploadedM4aSource
     var name string
     var filePath string
     var existing *m4a.AudioFile
-    for _, f := range elements {
-        name = f.Name()
-        filePath = path.Join(dir, f.Name())
+    var dirItem fs.FileInfo
+    for _, dirItem = range elements {
+        name = dirItem.Name()
+        filePath = path.Join(dir, dirItem.Name())
         if name == "." || name == ".." {
             continue
         }
 
-        if f.IsDir() {
+        if dirItem.IsDir() {
             scan(filePath, outputChan, uploaded)
             continue
         }
