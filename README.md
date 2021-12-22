@@ -1,16 +1,16 @@
 ### m4a uploader
-загружает треки m4a в s3 хранилище по ключу {isrc}/track.m4a
+uploads m4a tracks to s3 by key {isrc}/track.m4a
 
 ### Алгоритм:
-- загружаем базу искомых пар amid и isrc (см source.example.csv, можно указать флагом -s)
-- сканируем переданную директорию (флаг -d)
-- вычленяем из тега трека имя автора и название
-- на каждый трек с тегом сделается запрос в apple, чтобы соотнести результаты поиска и пару в бд
-- если соответствие найдено - загружаем файл с диска на s3 (см aws_config.example.json и флаг -a)
+- loads search base of amid и isrc (look at source.example.csv, -s flag)
+- scan dirs with file (-d flag)
+- read file meta
+- check tracks data in apple, and when search in loaded source file
+- if match found -> uploads file to s3
 
 ### run
 ```bash
-cat aws_config.example.json > aws_config.json # создать конфиг и заменить все значения на свои
+cat aws_config.example.json > aws_config.json
 go build -o uploader cmd/m4a/main.go
-./uploader -d /path/to/m4a/files # при условии что source.csv и aws_config.json лежат в директории исполнения)
+./uploader -d /path/to/m4a/files # source.csv and aws_config.json in same dir
 ```

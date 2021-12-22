@@ -11,7 +11,11 @@ import (
     "m4a_manager/internal/source"
     "m4a_manager/internal/state"
     "m4a_manager/internal/upload"
+    "net/http"
+    _ "net/http/pprof"
     "os"
+    "runtime"
+    "time"
 )
 
 var sourceFile *string
@@ -26,6 +30,9 @@ func init() {
 
 func main() {
     flag.Parse()
+    go func() {
+        http.ListenAndServe("localhost:8080", nil)
+    }()
     if *sourceFile == "" || *scanDir == "" || *awsConfig == "" {
         flag.Usage()
         return
@@ -55,10 +62,20 @@ func main() {
     audioFiles := m4a.ParseFiles(m4aPaths)
     matchedFiles := apple.MatchAudioFiles(audioFiles, dataset)
     uploadedFiles := upload.M4a(matchedFiles, awsCfg.Bucket, uploadedDataset)
+
+    go func() {
+        ticker := time.NewTicker(time.Second * 10)
+        for range ticker.C {
+            logrus.Info("gc force run")
+            runtime.GC()
+        }
+    }()
     err = state.SaveUploaded(uploadedFiles, "uploaded.csv")
     if err != nil {
         logrus.Fatal(err)
     }
+
+    <-make(chan struct{})
 }
 
 func initDataSource(sourceFile string) (*source.AppleSource, error) {

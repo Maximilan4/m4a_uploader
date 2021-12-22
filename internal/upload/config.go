@@ -18,7 +18,7 @@ func ParseConfig(configDir string) (*Config, error) {
     if err != nil {
         return nil, err
     }
-
+    defer file.Close()
     decoder := json.NewDecoder(file)
     var cfg Config
     err = decoder.Decode(&cfg)

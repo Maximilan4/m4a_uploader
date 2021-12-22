@@ -20,7 +20,7 @@ var uploader *manager.Uploader
 
 func Init(cfg *Config) error {
     awsConfig, err := config.LoadDefaultConfig(context.TODO(),
-        config.WithEndpointResolverWithOptions(getResolverFunc(cfg)),
+        config.WithEndpointResolverWithOptions(GetResolverFunc(cfg)),
         config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKeyId, cfg.SecretAccessKey, "")),
     )
 
@@ -33,7 +33,7 @@ func Init(cfg *Config) error {
     return nil
 }
 
-func getResolverFunc(cfg *Config) aws.EndpointResolverWithOptionsFunc {
+func GetResolverFunc(cfg *Config) aws.EndpointResolverWithOptionsFunc {
     return func(service, region string, options ...interface{}) (aws.Endpoint, error) {
         var endpoint aws.Endpoint
         if cfg.Region == "" || cfg.Host == "" {
