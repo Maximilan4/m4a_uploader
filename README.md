@@ -1,7 +1,7 @@
 ### m4a uploader
 uploads m4a tracks to s3 by key {isrc}/track.m4a
 
-### Алгоритм:
+### Algo:
 - loads search base of amid и isrc (look at source.example.csv, -s flag)
 - scan dirs with file (-d flag)
 - read file meta
